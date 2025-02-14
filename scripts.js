@@ -2,6 +2,7 @@
 const form = document.querySelector("form");
 const expenseList = document.querySelector("ul");
 const expenseQuantity = document.querySelector("aside header p span");
+const expenseTotal = document.querySelector("aside header h2");
 const amount = document.getElementById("amount");
 const expense = document.getElementById("expense");
 const category = document.getElementById("category");
@@ -88,6 +89,9 @@ function expenseAdd(newExpense) {
     // adiciona o item na lista
     expenseList.append(expenseItem);
 
+    // limpa o formulário
+    formClear();
+
     // atualiza os totais
     updateTotals();
 
@@ -115,10 +119,60 @@ function updateTotals() {
     // percorre cada li
     for (let item = 0; item < items.length; item++) {
       const itemAmount = items[item].querySelector(".expense-amount");
+
+      // remove caracteres não numericos e substitue ',' por '.'
+      let value = itemAmount.textContent
+        .replace(/[^\d,]/g, "")
+        .replace(",", ".");
+
+      // converte o valor para float
+      value = parseFloat(value);
+
+      // verifica se é um numero valido
+      if (isNaN(value)) {
+        return alert(
+          "Não foi possível calcular o total. O valor não parece ser um número."
+        );
+      }
+
+      // incrementar o valor total
+      total += Number(value);
     }
 
+    const symbolBRL = document.createElement("small");
+    symbolBRL.textContent = "R$";
+
+    // formata o valor e remove o R$, para mostrar apenas o do small.
+    total = formatCurrencyBRL(total).toUpperCase().replace("R$", "");
+
+    // adiciona o simbolo da moeda do small e o valor formatado
+    expenseTotal.innerHTML = "";
+    expenseTotal.append(symbolBRL, total);
     // alerta um erro
   } catch (error) {
     alert("Não foi possível atualizar os valores totais!");
   }
+}
+
+// evento para capturar os cliques na lista
+expenseList.addEventListener("click", (event) => {
+  // verifica se o evento clicado é o item de remover
+  if (event.target.classList.contains("remove-icon")) {
+    // obtem a li pai do elemento clicado
+    const item = event.target.closest(".expense");
+    // remove o item da lista
+    item.remove();
+  }
+
+  updateTotals();
+});
+
+function formClear() {
+  // limpa os valores do input
+  expense.value = "";
+  category.value = "";
+  amount.value = "";
+
+  // coloca o foco no input de amount
+  expense.focus();
 }
